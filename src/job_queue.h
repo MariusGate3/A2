@@ -5,7 +5,7 @@
 
 struct job_queue {
   size_t capacity;
-  size_t job_counter;
+  size_t rear;
   size_t front;
   void **jobs;
   pthread_mutex_t mutex;
