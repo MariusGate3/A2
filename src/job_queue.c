@@ -22,14 +22,14 @@ int job_queue_init(struct job_queue *job_queue, int capacity) {
 }
 
 int job_queue_destroy(struct job_queue *job_queue) {
-  // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+  // LOCK
   pthread_mutex_lock(&job_queue->mutex);
   while (job_queue->rear > 0) {
     pthread_cond_wait(&job_queue->empty, &job_queue->mutex);
   }
 
   free(job_queue->jobs);
-  // UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+  // UNLOCK
   pthread_mutex_unlock(&job_queue->mutex);
   pthread_mutex_destroy(&job_queue->mutex);
   pthread_cond_destroy(&job_queue->not_full);
@@ -41,7 +41,7 @@ int job_queue_destroy(struct job_queue *job_queue) {
 int job_queue_push(struct job_queue *job_queue, void *data) {
   // if mutex is already locked, then the current thread just waits until
   // the mutex is unlocked so that it can continue pushing its job to the queue.
-  // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+  // LOCK
   pthread_mutex_lock(&job_queue->mutex);
 
   // in the case where the queue is full, we dont want to keep the mutex locked.
@@ -55,14 +55,15 @@ int job_queue_push(struct job_queue *job_queue, void *data) {
 
   // signal that the que isnt empty, so the queue_pop function is allowed to pop
   pthread_cond_signal(&job_queue->not_empty);
-  // UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+
+  // UNLOCK
   pthread_mutex_unlock(&job_queue->mutex);
   return 0;
 
 }
 
 int job_queue_pop(struct job_queue *job_queue, void **data) {
-  // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+  // LOCK
   pthread_mutex_lock(&job_queue->mutex);
   // we want to wait until the queue is not empty, so that there is something to pop
   // we do this by using a wait condition as so:
@@ -82,7 +83,7 @@ int job_queue_pop(struct job_queue *job_queue, void **data) {
     pthread_cond_signal(&job_queue->empty);
   }
 
-  // UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+  // UNLOCK
   pthread_mutex_unlock(&job_queue->mutex);
   return 0;
 }
