@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 struct job_queue {
+  int terminate;
   size_t capacity;
   size_t rear;
   size_t front;
