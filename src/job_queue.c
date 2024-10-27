@@ -29,12 +29,14 @@ int job_queue_destroy(struct job_queue *job_queue) {
   }
 
   free(job_queue->jobs);
-  // UNLOCK
-  pthread_mutex_unlock(&job_queue->mutex);
+  
   pthread_mutex_destroy(&job_queue->mutex);
   pthread_cond_destroy(&job_queue->not_full);
   pthread_cond_destroy(&job_queue->not_empty);
   pthread_cond_destroy(&job_queue->empty);
+
+  // UNLOCK
+  pthread_mutex_unlock(&job_queue->mutex);
   return 0;
 }
 
